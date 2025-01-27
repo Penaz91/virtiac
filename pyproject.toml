@@ -1,0 +1,27 @@
+[project]
+dynamic = ["version"]
+name = "VirtIAC"
+description = "Infrastructure-as-code for LibVirt"
+license-files = ["LICENSE.md"]
+keywords = ["libvirt"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Development",
+    "Programming Language :: Python"
+]
+dependencies = [
+    "libvirt-python>=11.0.0",
+    "xdg-base-dirs>=6.2.0"
+]
+requires_python = ">=3.11"
+authors = [
+    {"name": "Daniele Penazzo", "email": "penazarea@altervista.org"},
+]
+maintainers = [
+    {"name": "Daniele Penazzo", "email": "penazarea@altervista.org"},
+]
+
+[project.optional-dependecies]
+dev = [
+    "ipdb"
+]
