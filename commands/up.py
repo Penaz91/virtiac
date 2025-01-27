@@ -39,6 +39,8 @@ class StartCommand:
         if domain:
             print(f"Domain {arguments.domain} Found")
         LOGGER.info("Starting Domain %s", domain_name)
+        # TODO: [Penaz] [2025-01-27] Check for domain existence, if doesn't
+        # ^ exist, create it
         if domain.isActive():
             LOGGER.info("Domain %s already started", domain_name)
             return
