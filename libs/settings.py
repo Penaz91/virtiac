@@ -11,7 +11,6 @@ Author: Penaz
 import json
 import logging
 from os.path import isfile
-from os.path import join as pjoin
 from pathlib import Path
 
 from xdg_base_dirs import xdg_config_home
@@ -26,12 +25,12 @@ def get_settings():
     LOGGER.debug("Loading settings")
     # Default settings
     LOGGER.debug("Loading default settings")
-    path = pjoin(Path(__file__).parent.parent.resolve(), "settings.json")
+    path = Path(__file__).parent.parent.resolve() / "settings.json"
     curr_settings = {}
     with open(path, "r", encoding="utf-8") as fh:
         curr_settings.update(json.load(fh))
     # XDG Config Dir
-    path = pjoin(xdg_config_home(), "virtiac", "settings.json")
+    path = xdg_config_home() / "virtiac" / "settings.json"
     if isfile(path):
         LOGGER.debug("Loading user settings")
         with open(path, "r", encoding="utf-8") as fh:

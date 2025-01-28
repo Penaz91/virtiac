@@ -9,14 +9,13 @@ Created on: 2025-01-27
 Author: Penaz
 """
 import pkgutil
-from os.path import join as pjoin
 
 
 def find_commands(path):
     """
     Automatically finds commands in the command folder
     """
-    commands_dir = pjoin(path, "commands")
+    commands_dir = path / "commands"
     return {
         name
         for _, name, is_package in pkgutil.iter_modules([commands_dir])
