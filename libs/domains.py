@@ -8,6 +8,20 @@ Created on: 2025-01-27
 
 Author: Penaz
 """
+import logging
+
+from libvirt import libvirtError
+
+LOGGER = logging.getLogger(__name__)
+
 
 def get_domain_by_name(connection, name):
-    return connection.lookupByName(name)
+    """
+    Tries to get a domain, given its internal name
+    """
+    domain = None
+    try:
+        domain = connection.lookupByName(name)
+    except libvirtError:
+        LOGGER.error("Unable to find domain %s", name)
+    return domain

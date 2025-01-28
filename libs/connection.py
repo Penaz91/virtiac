@@ -16,11 +16,23 @@ LOGGER = logging.getLogger(__name__)
 
 
 def get_connection(url=None, mode="r"):
+    """
+    Tries to connect to LibVirt
+    """
+    connection = None
     if mode == "r":
         LOGGER.debug("Connecting to %s in readonly mode", url)
-        connection = libvirt.openReadOnly(url)
+        try:
+            connection = libvirt.openReadOnly(url)
+        except libvirt.libvirtError:
+            LOGGER.fatal("Unable to open a connection to %s", url)
         return connection
     if mode == "rw":
         LOGGER.debug("Connecting to %s in read/write mode", url)
-        connection = libvirt.open(url)
+        try:
+            connection = libvirt.open(url)
+        except libvirt.libvirtError:
+            LOGGER.fatal("Unable to open a connection to %s", url)
         return connection
+    LOGGER.fatal("Invalid connection mode detected")
+    return connection
