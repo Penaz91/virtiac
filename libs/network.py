@@ -35,3 +35,18 @@ def get_ips(domain):
                 if ipaddr["type"] == libvirt.VIR_IP_ADDR_TYPE_IPV6:
                     addresses["ipv6"].append(ipaddr["addr"])
     return addresses
+
+
+def start_network(conn: libvirt.virConnect, network_name: str):
+    """
+    Starts a network, if not already started
+    """
+    try:
+        network = conn.networkLookupByName(network_name)
+    except libvirt.libvirtError:
+        LOGGER.error("Network %s does not exist", network_name)
+        return
+    if network.isActive():
+        LOGGER.debug("Network %s already active", network_name)
+        return
+    network.create()

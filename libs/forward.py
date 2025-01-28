@@ -10,15 +10,17 @@ Author: Penaz
 """
 import logging
 import signal
-from os import kill
+from os import getlogin, kill
 from subprocess import Popen
+from time import sleep
 
 from libs.files import get_state, set_state
+from libs.network import get_ips
 
 LOGGER = logging.getLogger(__name__)
 
 
-def forward_single_port(guest_port, host_port, guest_ip, user):
+def forward_single_port(guest_port, host_port, guest_ip, user, key=None):
     """
     Forwards a guest port to the host via SSH, returning the process PID
     """
@@ -32,22 +34,41 @@ def forward_single_port(guest_port, host_port, guest_ip, user):
         "-N",
         f"{user}@{guest_ip}"
     ]
+    if key:
+        command.extend([
+            "-i",
+            key
+        ])
     process = Popen(command)
     return process.pid
 
 
-def forward_ports(domain_settings, domain_name):
+def forward_ports(domain_settings, domain, key=None):
     """
     Forward all defined ports in the virtiac.json file
     """
+    domain_name = domain.name()
+    user = domain_settings["machines"][domain_name].get("user", getlogin())
+    LOGGER.info("Waiting for Domain to Acquire IPs")
+    timer = 0
+    ips = get_ips(domain)
+    while not ips["ipv4"] and not ips["ipv6"] and timer < 30:
+        ips = get_ips(domain)
+        timer += 1
+        sleep(1)
+    if timer >= 30:
+        LOGGER.error("Failed to acquire IP for domain %s", domain_name)
+        return
+    # NOTE: [Penaz] [2025-01-28] I just get the first available IPv4
+    ip = ips["ipv4"][0]
     if "forwarded_ports" in domain_settings["machines"][domain_name]:
         for port_dict in domain_settings["machines"][domain_name]["forwarded_ports"]:
             pid = forward_single_port(
                 port_dict["guest"],
                 port_dict["host"],
-                # XXX: [Penaz] [2025-01-28] Temporary
-                "192.168.121.19",
-                "vagrant"
+                ip,
+                user,
+                key,
             )
             set_state(
                 domain_name, "forwarded_ports_pids", pid, True

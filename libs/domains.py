@@ -9,10 +9,12 @@ Created on: 2025-01-27
 Author: Penaz
 """
 import logging
+from time import sleep
 
 from libvirt import libvirtError
 
 from libs.forward import clean_ports, forward_ports
+from libs.network import start_network
 
 LOGGER = logging.getLogger(__name__)
 
@@ -45,11 +47,19 @@ def start_domain(conn, domain_name, machine_settings=None):
     if domain.isActive():
         LOGGER.info("Domain %s already started", domain_name)
         return
+    if machine_settings:
+        network_name = machine_settings["machines"][domain_name].get(
+            "network", "default"
+        )
+    else:
+        network_name = "default"
+    start_network(conn, network_name)
     domain.create()
     LOGGER.info("Domain %s started", domain_name)
     # TODO: [Penaz] [2025-01-28] Needs to wait for machine to be up
     if machine_settings:
-        forward_ports(machine_settings, domain_name)
+        key = machine_settings["machines"][domain_name].get("key", None)
+        forward_ports(machine_settings, domain, key)
 
 
 def stop_domain(conn, domain_name):
@@ -67,6 +77,14 @@ def stop_domain(conn, domain_name):
         LOGGER.info("Domain %s already stopped", domain_name)
         return
     domain.shutdown()
+    LOGGER.info("Waiting for domain %s to stop", domain_name)
+    timer = 0
+    while domain.isActive() and timer < 30:
+        sleep(1)
+        timer += 1
+    if timer >= 30:
+        LOGGER.info("Domain %s not stopping, destroying it", domain_name)
+        domain.destroy()
     LOGGER.info("Domain %s stopped", domain_name)
     LOGGER.info("Cleaning forwarded ports")
     clean_ports(domain_name)
