@@ -15,6 +15,7 @@ from libs.commands import registry
 from libs.connection import get_connection
 from libs.domains import get_domain_by_name
 from libs.files import get_machine_file
+from libs.network import get_ips
 from libs.settings import get_settings
 
 LOGGER = logging.getLogger(__name__)
@@ -53,35 +54,31 @@ class SSHCommand:
             LOGGER.info("Domain %s does not exist", domain_name)
             return
         LOGGER.info("Domain %s found", domain_name)
-        LOGGER.info("Starting Domain %s", domain_name)
         if not domain.isActive():
             LOGGER.info("Domain %s not started", domain_name)
             return
-        LOGGER.debug("Querying ARP tables for domain IP")
-        networks = domain.interfaceAddresses(2)
-        for netname, net in networks.items():
-            LOGGER.debug("Exploring network %s", netname)
-            LOGGER.debug("Found addresses %s", net["addrs"])
-            address = net["addrs"][0]["addr"]
-            LOGGER.info("Connecting to %s via SSH", address)
-            user = getlogin()
-            if "user" in machine:
-                user = machine["user"]
-            ssh_command = [
-                "ssh",
-                "ssh",
-                "-o",
-                "StrictHostKeyChecking=no",
-                "-o",
-                "UserKnownHostsFile=/dev/null",
-                f"{user}@{address}"
-            ]
-            if "key" in machine:
-                ssh_command.extend([
-                    "-i",
-                    f"{machine["key"]}"
-                ])
-            execlp(*ssh_command)
+        ip_addrs = get_ips(domain)
+        # TODO: [Penaz] [2025-01-28] Make more flexible
+        address = ip_addrs["ipv4"][0]
+        LOGGER.info("Connecting to %s via SSH", address)
+        user = getlogin()
+        if "user" in machine:
+            user = machine["user"]
+        ssh_command = [
+            "ssh",
+            "ssh",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            f"{user}@{address}"
+        ]
+        if "key" in machine:
+            ssh_command.extend([
+                "-i",
+                f"{machine["key"]}"
+            ])
+        execlp(*ssh_command)
 
     @staticmethod
     def register_parser_subcommands(subparsers):
