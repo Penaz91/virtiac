@@ -50,6 +50,7 @@ class CheckCommand:
             domain = get_domain_by_name(conn, domain_name)
             if domain:
                 LOGGER.info("Domain %s Found", domain_name)
+        conn.close()
 
     @staticmethod
     def register_parser_subcommands(subparsers):

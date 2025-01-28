@@ -38,6 +38,7 @@ class ListCommand:
         ]
         for item in domains:
             print(item)
+        conn.close()
 
     @staticmethod
     def register_parser_subcommands(subparsers):
