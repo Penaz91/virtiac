@@ -36,13 +36,10 @@ class SSHCommand:
             machine_settings = get_machine_file()
             # TODO: [Penaz] [2025-01-28] Eventually change to support
             # ^ a different URL per machine
-            domain_names = [
-                item["name"]
-                for item in machine_settings["machines"]
-            ]
+            domain_names = list(machine_settings["machines"])
             # TODO: [Penaz] [2025-01-28] Show an SSH selection menu
             domain_name = domain_names[0]
-            machine = machine_settings["machines"][0]
+            machine = machine_settings["machines"][domain_name]
         LOGGER.debug("Connecting to %s via LibVirt", settings["url"])
         conn = get_connection(settings["url"], "rw")
         if not conn:

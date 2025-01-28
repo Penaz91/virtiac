@@ -13,7 +13,8 @@ import logging
 from libs.commands import registry
 from libs.connection import get_connection
 from libs.domains import get_domain_by_name
-from libs.files import get_machine_file
+from libs.files import get_machine_file, set_state
+from libs.forward import forward_port
 from libs.settings import get_settings
 
 LOGGER = logging.getLogger(__name__)
@@ -31,14 +32,12 @@ class StartCommand:
         """
         settings = get_settings()
         domain_names = arguments.domain
+        machine_settings = None
         if not domain_names:
             machine_settings = get_machine_file()
             # TODO: [Penaz] [2025-01-28] Eventually change to support
             # ^ a different URL per machine
-            domain_names = [
-                item["name"]
-                for item in machine_settings["machines"]
-            ]
+            domain_names = list(machine_settings["machines"])
         LOGGER.debug("Connecting to %s via LibVirt", settings["url"])
         conn = get_connection(settings["url"], "rw")
         if not conn:
@@ -61,6 +60,20 @@ class StartCommand:
                 continue
             domain.create()
             LOGGER.info("Domain %s started", domain_name)
+            # TODO: [Penaz] [2025-01-28] Needs to wait for machine to be up
+            if machine_settings:
+                if "forwarded_ports" in machine_settings["machines"][domain_name]:
+                    for port_dict in machine_settings["machines"][domain_name]["forwarded_ports"]:
+                        pid = forward_port(
+                            port_dict["guest"],
+                            port_dict["host"],
+                            # XXX: [Penaz] [2025-01-28] Temporary
+                            "192.168.121.19",
+                            "vagrant"
+                        )
+                        set_state(
+                            domain_name, "forwarded_ports_pids", pid, True
+                        )
 
     @staticmethod
     def register_parser_subcommands(subparsers):

@@ -9,11 +9,13 @@ Created on: 2025-01-27
 Author: Penaz
 """
 import logging
+import signal
+from os import kill
 
 from libs.commands import registry
 from libs.connection import get_connection
 from libs.domains import get_domain_by_name
-from libs.files import get_machine_file
+from libs.files import get_machine_file, get_state, set_state
 from libs.settings import get_settings
 
 LOGGER = logging.getLogger(__name__)
@@ -35,10 +37,7 @@ class HaltCommand:
             machine_settings = get_machine_file()
             # TODO: [Penaz] [2025-01-28] Eventually change to support
             # ^ a different URL per machine
-            domain_names = [
-                item["name"]
-                for item in machine_settings["machines"]
-            ]
+            domain_names = list(machine_settings["machines"])
         LOGGER.debug("Connecting to %s via LibVirt", settings["url"])
         conn = get_connection(settings["url"], "rw")
         if not conn:
@@ -58,6 +57,19 @@ class HaltCommand:
                 continue
             domain.shutdown()
             LOGGER.info("Domain %s stopped", domain_name)
+            LOGGER.info("Cleaning forwarded ports")
+            state = get_state()
+            if domain_name in state["machines"]:
+                if "forwarded_ports_pids" in state["machines"][domain_name]:
+                    for pid in state["machines"][domain_name]["forwarded_ports_pids"]:
+                        try:
+                            kill(pid, signal.SIGTERM)
+                        except ProcessLookupError:
+                            LOGGER.debug("Process with pid %s not found", pid)
+                            continue
+                    set_state(
+                        domain_name, "forwarded_ports_pids", []
+                    )
 
     @staticmethod
     def register_parser_subcommands(subparsers):

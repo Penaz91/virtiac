@@ -13,6 +13,8 @@ import logging
 from os import getcwd
 from pathlib import Path
 
+from xdg_base_dirs import xdg_state_home
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -40,3 +42,37 @@ def get_machine_file():
     machine_file = find_machine_file()
     with open(machine_file, "r", encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def get_state():
+    """
+    Gets the current state from the state file
+    """
+    state = {}
+    state_file = xdg_state_home() / "virtiac" / "virtiac.json"
+    if not state_file.is_file():
+        state_file.parent.mkdir(exist_ok=True, parents=True)
+        state_file.write_text("{}", encoding="utf-8")
+    with open(state_file, "r", encoding="utf-8") as fh:
+        state = json.load(fh)
+    return state
+
+
+def set_state(machine, key, value, append=False):
+    """
+    Sets the state of a machine in the machine file
+    """
+    state = get_state()
+    state_file = xdg_state_home() / "virtiac" / "virtiac.json"
+    if "machines" not in state:
+        state["machines"] = {}
+    if machine not in state["machines"]:
+        state["machines"][machine] = {}
+    if append:
+        if key not in state["machines"][machine]:
+            state["machines"][machine][key] = []
+        state["machines"][machine][key].append(value)
+    else:
+        state["machines"][machine][key] = value
+    with open(state_file, "w", encoding="utf-8") as fh:
+        json.dump(state, fh)
