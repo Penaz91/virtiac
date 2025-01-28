@@ -12,9 +12,8 @@ import logging
 
 from libs.commands import registry
 from libs.connection import get_connection
-from libs.domains import get_domain_by_name
+from libs.domains import stop_domain
 from libs.files import get_machine_file
-from libs.forward import clean_ports
 from libs.settings import get_settings
 
 LOGGER = logging.getLogger(__name__)
@@ -42,24 +41,8 @@ class HaltCommand:
         if not conn:
             return
         for domain_name in domain_names:
-            LOGGER.debug(
-                "Checking for existence of domain %s",
-                domain_name
-            )
-            domain = get_domain_by_name(conn, domain_name)
-            if not domain:
-                LOGGER.info("Domain %s does not exist", domain_name)
-                continue
-            LOGGER.info("Domain %s found", domain_name)
-            LOGGER.info("Stopping Domain %s", domain_name)
-            if not domain.isActive():
-                LOGGER.info("Domain %s already stopped", domain_name)
-                continue
-            domain.shutdown()
-            LOGGER.info("Domain %s stopped", domain_name)
-            LOGGER.info("Cleaning forwarded ports")
-            clean_ports(domain_name)
-            conn.close()
+            stop_domain(conn, domain_name)
+        conn.close()
 
     @staticmethod
     def register_parser_subcommands(subparsers):

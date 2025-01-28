@@ -12,9 +12,8 @@ import logging
 
 from libs.commands import registry
 from libs.connection import get_connection
-from libs.domains import get_domain_by_name
+from libs.domains import start_domain
 from libs.files import get_machine_file
-from libs.forward import forward_ports
 from libs.settings import get_settings
 
 LOGGER = logging.getLogger(__name__)
@@ -43,26 +42,7 @@ class StartCommand:
         if not conn:
             return
         for domain_name in domain_names:
-            LOGGER.debug(
-                "Checking for existence of domain %s",
-                domain_name
-            )
-            domain = get_domain_by_name(conn, domain_name)
-            if not domain:
-                LOGGER.info("Domain %s does not exist", domain_name)
-                continue
-            LOGGER.info("Domain %s found", domain_name)
-            LOGGER.info("Starting Domain %s", domain_name)
-            # TODO: [Penaz] [2025-01-27] Check for domain existence, if doesn't
-            # ^ exist, create it
-            if domain.isActive():
-                LOGGER.info("Domain %s already started", domain_name)
-                continue
-            domain.create()
-            LOGGER.info("Domain %s started", domain_name)
-            # TODO: [Penaz] [2025-01-28] Needs to wait for machine to be up
-            if machine_settings:
-                forward_ports(machine_settings, domain_name)
+            start_domain(conn, domain_name, machine_settings)
         conn.close()
 
     @staticmethod
