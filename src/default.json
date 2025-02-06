@@ -1,6 +1,7 @@
 {
     "machines": {
         "__machine_name__": {
+            "title": "__machine_title__",
             "cpu":{
                 "vcpus": 4,
                 "mode": "host-model",
