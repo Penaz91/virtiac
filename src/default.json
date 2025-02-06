@@ -1,0 +1,33 @@
+{
+    "machines": {
+        "machine_name": {
+            "cpu":{
+                "vcpus": 4,
+                "mode": "host-model",
+                "check": "partial"
+            },
+            "memory":{
+                "size": 2048,
+                "access_mode": "shared"
+            },
+            "disks":[
+                {
+                    "format": "qcow2",
+                    "sparse": true,
+                    "path": ""
+                }
+            ],
+            "bridge":{
+                "net_name": "default",
+                "type": "virtio"
+            },
+            "network": {
+                "forward_mode": "nat",
+                "bridge_name": "virbr0",
+                "ip": "192.168.121.1"
+            },
+            "forwarded_ports": [],
+            "file_shares": []
+        }
+    }
+}

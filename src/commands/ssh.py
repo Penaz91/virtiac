@@ -33,6 +33,7 @@ class SSHCommand:
         """
         settings = get_settings()
         domain_name = arguments.domain
+        machine = None
         if not domain_name:
             machine_settings = get_machine_file()
             # TODO: [Penaz] [2025-01-28] Eventually change to support
@@ -41,6 +42,8 @@ class SSHCommand:
             # TODO: [Penaz] [2025-01-28] Show an SSH selection menu
             domain_name = domain_names[0]
             machine = machine_settings["machines"][domain_name]
+        if not machine:
+            raise RuntimeError("Could not load VM")
         LOGGER.debug("Connecting to %s via LibVirt", settings["url"])
         conn = get_connection(settings["url"], "rw")
         if not conn:

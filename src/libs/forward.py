@@ -29,6 +29,10 @@ def forward_single_port(guest_port, host_port, guest_ip, user, key=None):
     )
     command = [
         "ssh",
+        "-o",
+        "StrictHostKeyChecking=no",
+        "-o",
+        "UserKnownHostsFile=/dev/null",
         "-L",
         f"*:{host_port}:{guest_ip}:{guest_port}",
         "-N",
@@ -47,9 +51,10 @@ def forward_ports(domain_settings, domain, key=None):
     """
     Forward all defined ports in the virtiac.json file
     """
+    LOGGER.info("Waiting for Domain to Acquire IPs")
     domain_name = domain.name()
     user = domain_settings["machines"][domain_name].get("user", getlogin())
-    LOGGER.info("Waiting for Domain to Acquire IPs")
+    LOGGER.debug("Using user %s to access the VM", user)
     timer = 0
     ips = get_ips(domain)
     while not ips["ipv4"] and not ips["ipv6"] and timer < 30:
@@ -60,6 +65,7 @@ def forward_ports(domain_settings, domain, key=None):
         LOGGER.error("Failed to acquire IP for domain %s", domain_name)
         return
     # NOTE: [Penaz] [2025-01-28] I just get the first available IPv4
+    LOGGER.debug("Found IPs %s", ips)
     ip = ips["ipv4"][0]
     if "forwarded_ports" in domain_settings["machines"][domain_name]:
         for port_dict in domain_settings["machines"][domain_name]["forwarded_ports"]:

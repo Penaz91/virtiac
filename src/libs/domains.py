@@ -48,8 +48,8 @@ def start_domain(conn, domain_name, machine_settings=None):
         LOGGER.info("Domain %s already started", domain_name)
         return
     if machine_settings:
-        network_name = machine_settings["machines"][domain_name].get(
-            "network", "default"
+        network_name = machine_settings["machines"][domain_name]["bridge"].get(
+            "net_name", "default"
         )
     else:
         network_name = "default"
