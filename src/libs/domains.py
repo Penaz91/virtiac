@@ -41,9 +41,9 @@ def start_domain(conn, domain_name, machine_settings=None):
     )
     domain = get_domain_by_name(conn, domain_name)
     if not domain:
+        LOGGER.info("Domain %s does not exist, creating it", domain_name)
         new_domain(conn, domain_name, machine_settings["machines"][domain_name])
-        LOGGER.info("Domain %s does not exist", domain_name)
-        return
+        domain = get_domain_by_name(conn, domain_name)
     LOGGER.info("Domain %s found", domain_name)
     LOGGER.info("Starting Domain %s", domain_name)
     # TODO: [Penaz] [2025-01-27] Check for domain existence, if doesn't
@@ -143,3 +143,12 @@ def new_domain(conn, domain_name, machine_settings):
 
     )
     conn.defineXML(domain_xml)
+    LOGGER.info("Domain defined")
+    timer = 0
+    domain = get_domain_by_name(conn, domain_name)
+    while not domain and timer < 30:
+        LOGGER.info("Waiting for domain %s to become active")
+        sleep(1)
+        domain = get_domain_by_name(conn, domain_name)
+    if timer >= 30:
+        LOGGER.error("Domain %s could not become active")
