@@ -13,7 +13,7 @@ import logging
 from os.path import isfile
 from pathlib import Path
 
-from xdg_base_dirs import xdg_config_home
+from xdg import BaseDirectory
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def get_settings():
     with open(path, "r", encoding="utf-8") as fh:
         curr_settings.update(json.load(fh))
     # XDG Config Dir
-    path = xdg_config_home() / "virtiac" / "settings.json"
+    path = Path(BaseDirectory.xdg_config_home) / "virtiac" / "settings.json"
     if isfile(path):
         LOGGER.debug("Loading user settings")
         with open(path, "r", encoding="utf-8") as fh:

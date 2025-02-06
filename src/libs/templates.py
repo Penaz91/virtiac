@@ -40,6 +40,8 @@ DOMAIN_TEMPLATE = """
 <devices>
 <emulator>/bin/qemu-system-x86_64</emulator>
 {disks}
+{shares}
+{interface}
 <controller type='usb'></controller>
 <controller type='pci' model='pci-root'/>
 <console type='pty'>
@@ -66,11 +68,12 @@ MEMORY_TEMPLATE = """
 <currentMemory unit="MiB">{size}</currentMemory>
 <memoryBacking>
 <access mode="{accessmode}" />
+<source type="memfd" />
 </memoryBacking>
 """
 
 CPU_TEMPLATE = """
-<vcpu placement="static">{vcpu}</vcpu>
+<vcpu placement="static">{vcpus}</vcpu>
 <cpu mode="{mode}" check="{check}">
 <model fallback="allow"/>
 </cpu>
@@ -80,14 +83,21 @@ DISK_TEMPLATE = """
 <disk type="file" device="disk">
 <driver name="qemu" type="{format}"/>
 <source file="{path}"/>
-<target dev="{dev} bus="virtio"/>"
+<target dev="{dev}" bus="virtio"/>"
 </disk>
 """
 
 FS_TEMPLATE = """
 <filesystem type="mount" accessmode="passthrough">
-<driver type="{driver}/>"
+<driver type="{driver}"/>
 <source dir="{source}"/>
 <target dir="{target_name}"/>
 </filesystem>
+"""
+
+INTERFACE_TEMPLATE = """
+<interface type="network">
+<source network="{network}" />
+<model type="{type}"/>
+</interface>
 """

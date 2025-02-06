@@ -13,7 +13,7 @@ import logging
 from os import getcwd
 from pathlib import Path
 
-from xdg_base_dirs import xdg_state_home
+from xdg import BaseDirectory
 
 LOGGER = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ def get_state():
     Gets the current state from the state file
     """
     state = {}
-    state_file = xdg_state_home() / "virtiac" / "virtiac.json"
+    state_file = Path(BaseDirectory.xdg_state_home) / "virtiac" / "virtiac.json"
     if not state_file.is_file():
         state_file.parent.mkdir(exist_ok=True, parents=True)
         state_file.write_text("{}", encoding="utf-8")
@@ -63,7 +63,7 @@ def set_state(machine, key, value, append=False):
     Sets the state of a machine in the machine file
     """
     state = get_state()
-    state_file = xdg_state_home() / "virtiac" / "virtiac.json"
+    state_file = Path(BaseDirectory.xdg_state_home) / "virtiac" / "virtiac.json"
     if "machines" not in state:
         state["machines"] = {}
     if machine not in state["machines"]:

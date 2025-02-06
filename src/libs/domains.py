@@ -10,9 +10,12 @@ Author: Penaz
 """
 import logging
 from time import sleep
+from uuid import uuid4
 
 from libvirt import libvirtError
 
+from libs import templates
+from libs.disks import create_disk
 from libs.forward import clean_ports, forward_ports
 from libs.network import start_network
 
@@ -38,6 +41,7 @@ def start_domain(conn, domain_name, machine_settings=None):
     )
     domain = get_domain_by_name(conn, domain_name)
     if not domain:
+        new_domain(conn, domain_name, machine_settings["machines"][domain_name])
         LOGGER.info("Domain %s does not exist", domain_name)
         return
     LOGGER.info("Domain %s found", domain_name)
@@ -88,3 +92,54 @@ def stop_domain(conn, domain_name):
     LOGGER.info("Domain %s stopped", domain_name)
     LOGGER.info("Cleaning forwarded ports")
     clean_ports(domain_name)
+
+
+def new_domain(conn, domain_name, machine_settings):
+    """
+    Creates a new domain, given the settings
+    """
+    LOGGER.info("Creating new domain %s", domain_name)
+    disks = []
+    shares = []
+    for idx, disk in enumerate(machine_settings["disks"]):
+        create_disk(disk)
+        disks.append(
+            templates.DISK_TEMPLATE.format(
+                format=disk["format"],
+                path=disk["path"],
+                dev=f"vd{chr(ord('a') + idx)}"
+            )
+        )
+    memory_xml = templates.MEMORY_TEMPLATE.format(
+        size=machine_settings["memory"].get("size", 2),
+        accessmode=machine_settings["memory"].get("access_mode", "shared")
+    )
+    cpu_xml = templates.CPU_TEMPLATE.format(
+        vcpus=machine_settings["cpu"].get("vcpus", 2),
+        mode=machine_settings["cpu"].get("model", "host-model"),
+        check=machine_settings["cpu"].get("check", "partial"),
+    )
+    interface_xml = templates.INTERFACE_TEMPLATE.format(
+        network=machine_settings["bridge"].get("net_name", "default"),
+        type=machine_settings["bridge"].get("type", "virtio")
+    )
+    for share in machine_settings["shares"]:
+        shares.append(
+            templates.FS_TEMPLATE.format(
+                driver=share.get("driver", "virtiofs"),
+                source=share["source"],
+                target_name=share["target"]
+            )
+        )
+    domain_xml = templates.DOMAIN_TEMPLATE.format(
+        name=domain_name,
+        uuid=str(uuid4()),
+        title=machine_settings.get("title", domain_name),
+        memory=memory_xml,
+        cpu=cpu_xml,
+        disks="".join(disks),
+        shares="".join(shares),
+        interface=interface_xml
+
+    )
+    conn.defineXML(domain_xml)

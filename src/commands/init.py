@@ -23,18 +23,18 @@ class InitCommand:
     """
     Initializes domains by writing a virtiac.json file
     """
-    LOGGER.info("Initializing new virtiac.json file")
-    path = Path(__file__).parent.parent.resolve() / "default.json"
-    destination = Path(getcwd()) / "virtiac.json"
-    if destination.is_file():
-        LOGGER.error("Virtiac.json file already exists")
-    copy(path, destination)
-    LOGGER.info("Default Virtiac.json has copied to the project folder")
 
     def __call__(self, arguments):
         """
         Creates a virtiac.json file where called
         """
+        LOGGER.info("Initializing new virtiac.json file")
+        path = Path(__file__).parent.parent.resolve() / "default.json"
+        destination = Path(getcwd()) / "virtiac.json"
+        if destination.is_file():
+            LOGGER.error("Virtiac.json file already exists")
+            copy(path, destination)
+            LOGGER.info("Default Virtiac.json has copied to the project folder")
 
     @staticmethod
     def register_parser_subcommands(subparsers):
