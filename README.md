@@ -22,6 +22,7 @@ Not much really:
 - Start an existing domain (if a `virtiac.json` is used, it will use ssh to forward ports to the host)
 - Stop an existing domain (if possible, it will kill the ssh processes used to forward the ports to the host)
 - SSH to an open domain (most of the times)
+- "Undefining" a domain (deleting it)
 
 What's half-working?
 --------------------
@@ -34,7 +35,6 @@ What's missing?
 
 Pretty much everything else:
 
-- "Undefining" a domain (deleting it)
 - Editing a domain structure
 - Auto-mount shared folders into guests (virtiofs)
 - ... Lots more
