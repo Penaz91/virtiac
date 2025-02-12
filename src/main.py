@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """
 This file is part of the VirtIAC Project.
 Copyright © 2025-2025, Daniele Penazzo. All Rights Reserved.
@@ -42,14 +42,24 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="VirtIAC")
     parser.add_argument(
         "-v", "--verbose", help="Enables debugging logging output",
-        action="store_const", dest="log_level", const=logging.DEBUG,
-        default=logging.INFO
+        action="store_true", dest="verbose"
     )
     subparsers = parser.add_subparsers(title="Subcommands", required=True)
     for cmdname, cmd in registry.commands.items():
         cmd.register_parser_subcommands(subparsers)
     arguments = parser.parse_args()
-    logging.basicConfig(level=arguments.log_level)
+    LOG_LEVEL = logging.INFO
+    LOG_FORMAT = "%(levelname)-10s | %(message)s"
+    if arguments.verbose:
+        LOG_LEVEL = logging.DEBUG
+        LOG_FORMAT = (
+            "%(asctime)s | %(levelname)-10s |"
+            " %(module)s:%(funcName)s - %(message)s"
+        )
+    logging.basicConfig(
+        level=LOG_LEVEL,
+        format=LOG_FORMAT
+    )
     if not arguments.command:
         parser.print_help()
     execute_command(arguments.command, arguments)
