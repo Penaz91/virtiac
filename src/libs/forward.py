@@ -11,7 +11,7 @@ Author: Penaz
 import logging
 import signal
 from os import getlogin, kill
-from subprocess import Popen
+from subprocess import DEVNULL, Popen
 from time import sleep
 
 from libs.files import get_state, set_state
@@ -29,6 +29,7 @@ def forward_single_port(guest_port, host_port, guest_ip, user, key=None):
     )
     command = [
         "ssh",
+        "-q",
         "-o",
         "StrictHostKeyChecking=no",
         "-o",
@@ -43,7 +44,7 @@ def forward_single_port(guest_port, host_port, guest_ip, user, key=None):
             "-i",
             key
         ])
-    process = Popen(command)
+    process = Popen(command, stdout=DEVNULL, stderr=DEVNULL)
     return process.pid
 
 

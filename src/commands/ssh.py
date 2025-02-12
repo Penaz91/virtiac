@@ -70,6 +70,7 @@ class SSHCommand:
         ssh_command = [
             "ssh",
             "ssh",
+            "-q",
             "-o",
             "StrictHostKeyChecking=no",
             "-o",
